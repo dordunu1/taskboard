@@ -49,4 +49,12 @@ export interface User {
   photoURL?: string
   createdAt: string
   updatedAt: string
+}
+
+export interface Comment {
+  id: string
+  text: string
+  userName: string
+  createdAt: Timestamp
+  taskId: string
 } 

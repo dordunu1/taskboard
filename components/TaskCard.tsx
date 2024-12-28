@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip"
+import { TaskExpandedView } from './TaskExpandedView'
 
 interface TaskCardProps {
   task: Task
@@ -46,6 +47,7 @@ interface DragItem {
 }
 
 export function TaskCard({ task, onEdit }: TaskCardProps) {
+  const [isExpanded, setIsExpanded] = React.useState(false)
   const ref = React.useRef<HTMLDivElement>(null)
   const categoryIcons = {
     [TaskCategory.BLOCKCHAIN]: <Boxes className="w-4 h-4" />,
@@ -78,118 +80,127 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
   dragRef(ref)
 
   return (
-    <div
-      ref={ref}
-      className={`group relative bg-card p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-move ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary">
-          {task.title}
-        </h3>
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground group-hover:text-primary">
-            {categoryIcons[task.category]}
-          </span>
-          <div className="flex items-center gap-1">
-            {onEdit && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit(task)
-                }}
-                className="p-1 rounded-full hover:bg-accent transition-colors"
-                title="Edit task"
-              >
-                <Pencil className="w-4 h-4 text-muted-foreground hover:text-primary" />
-              </button>
-            )}
-            <button
-              onClick={handleDelete}
-              className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
-              title="Delete task"
-            >
-              <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-            </button>
-          </div>
-        </div>
-      </div>
-      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-        {task.description}
-      </p>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            {task.dueDate && (
-              <div className="text-sm text-muted-foreground flex items-center gap-1">
-                <span className="font-medium text-foreground">Due:</span>
-                {formatDate(task.dueDate)}
-              </div>
-            )}
-            {task.assignee && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1">
-                      <User2 className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">{task.assignee}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Assigned to: {task.assignee}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
-              {task.priority}
+    <>
+      <div
+        ref={ref}
+        className={`group relative bg-card p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-pointer ${
+          isDragging ? 'opacity-50' : ''
+        }`}
+        onClick={() => setIsExpanded(true)}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary">
+            {task.title}
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground group-hover:text-primary">
+              {categoryIcons[task.category]}
             </span>
-            {task.links && Array.isArray(task.links) && task.links.length > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      className="p-1 rounded-full hover:bg-accent transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        if (task.links && task.links.length === 1) {
-                          window.open(task.links[0], '_blank')
-                        }
-                      }}
-                    >
-                      <Link2 className="w-4 h-4 text-muted-foreground hover:text-primary" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      {task.links.map((link, index) => (
-                        <a
-                          key={index}
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block text-sm hover:text-primary"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {link}
-                        </a>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+            <div className="flex items-center gap-1">
+              {onEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(task)
+                  }}
+                  className="p-1 rounded-full hover:bg-accent transition-colors"
+                  title="Edit task"
+                >
+                  <Pencil className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                </button>
+              )}
+              <button
+                onClick={handleDelete}
+                className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
+                title="Delete task"
+              >
+                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      {task.status === TaskStatus.IN_PROGRESS && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted overflow-hidden rounded-b-lg">
-          <div className="h-full bg-primary animate-progress" />
+        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+          {task.description}
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              {task.dueDate && (
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <span className="font-medium text-foreground">Due:</span>
+                  {formatDate(task.dueDate)}
+                </div>
+              )}
+              {task.assignee && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        <User2 className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">{task.assignee}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Assigned to: {task.assignee}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
+                {task.priority}
+              </span>
+              {task.links && Array.isArray(task.links) && task.links.length > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="p-1 rounded-full hover:bg-accent transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (task.links && task.links.length === 1) {
+                            window.open(task.links[0], '_blank')
+                          }
+                        }}
+                      >
+                        <Link2 className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        {task.links.map((link, index) => (
+                          <a
+                            key={index}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block text-sm hover:text-primary"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {link}
+                          </a>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          </div>
         </div>
-      )}
-    </div>
+        {task.status === TaskStatus.IN_PROGRESS && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted overflow-hidden rounded-b-lg">
+            <div className="h-full bg-primary animate-progress" />
+          </div>
+        )}
+      </div>
+
+      <TaskExpandedView
+        task={task}
+        isOpen={isExpanded}
+        onClose={() => setIsExpanded(false)}
+      />
+    </>
   )
 } 

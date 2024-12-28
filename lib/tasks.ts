@@ -12,9 +12,13 @@ import {
   Timestamp,
   where,
   or,
+  getDocs,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import { Task, Attachment, TaskStatus } from './types'
+import { Task, Comment } from './types'
+
+const tasksCollection = collection(db, 'tasks')
+const commentsCollection = collection(db, 'comments')
 
 export async function createTask(taskData: Partial<Task>) {
   const now = Timestamp.now()
@@ -23,11 +27,11 @@ export async function createTask(taskData: Partial<Task>) {
     createdAt: now,
     updatedAt: now,
   }
-  return addDoc(collection(db, 'tasks'), task)
+  return addDoc(tasksCollection, task)
 }
 
 export async function updateTask(taskId: string, taskData: Partial<Task>) {
-  const docRef = doc(db, 'tasks', taskId)
+  const docRef = doc(tasksCollection, taskId)
   const updates = {
     ...taskData,
     updatedAt: Timestamp.now(),
@@ -36,48 +40,49 @@ export async function updateTask(taskId: string, taskData: Partial<Task>) {
 }
 
 export async function deleteTask(taskId: string) {
-  const docRef = doc(db, 'tasks', taskId)
+  const docRef = doc(tasksCollection, taskId)
   return deleteDoc(docRef)
 }
 
-export async function updateTaskStatus(taskId: string, status: TaskStatus) {
-  const taskRef = doc(db, 'tasks', taskId)
-  return updateDoc(taskRef, {
-    status,
-    updatedAt: Timestamp.now(),
-  })
-}
-
-export async function updateTaskPriority(taskId: string, priority: Task['priority']) {
-  await updateTask(taskId, { priority })
-}
-
-export async function updateTaskAssignee(taskId: string, assignee: string) {
-  await updateTask(taskId, { assignee })
-}
-
-export async function addTaskAttachment(taskId: string, attachment: Attachment) {
-  const taskRef = doc(db, 'tasks', taskId)
-  await updateDoc(taskRef, {
-    attachments: arrayUnion(attachment),
-    updatedAt: serverTimestamp(),
-  })
-}
-
 export function subscribeToTasks(userId: string, callback: (tasks: Task[]) => void) {
-  const tasksQuery = query(
-    collection(db, 'tasks'),
-    or(
-      where('createdBy', '==', userId),
-      where('assignee', '==', userId)
-    )
+  const q = query(
+    tasksCollection,
+    where('createdBy', '==', userId),
+    orderBy('createdAt', 'desc')
   )
 
-  return onSnapshot(tasksQuery, (snapshot) => {
+  return onSnapshot(q, (snapshot) => {
     const tasks = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as Task[]
     callback(tasks)
   })
+}
+
+interface NewComment {
+  text: string
+  userName: string
+  createdAt: Timestamp
+}
+
+export async function addComment(taskId: string, comment: NewComment) {
+  return addDoc(commentsCollection, {
+    ...comment,
+    taskId,
+  })
+}
+
+export async function getComments(taskId: string): Promise<Comment[]> {
+  const q = query(
+    commentsCollection,
+    where('taskId', '==', taskId),
+    orderBy('createdAt', 'desc')
+  )
+  
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Comment[]
 } 
