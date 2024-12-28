@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useDrag } from 'react-dnd'
 import type { Identifier } from 'dnd-core'
 import { Task, TaskCategory, TaskPriority, TaskStatus } from '../lib/types'
-import { Boxes, FolderIcon, Link2, Pencil, Trash2, User2 } from 'lucide-react'
+import { Boxes, FolderIcon, Link2, Pencil, Trash2, User2, Paperclip } from 'lucide-react'
 import { deleteTask } from '../lib/tasks'
 import { Timestamp } from 'firebase/firestore'
 import {
@@ -97,6 +97,21 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
               {categoryIcons[task.category]}
             </span>
             <div className="flex items-center gap-1">
+              {task.attachments && task.attachments.length > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-1 rounded-full bg-muted/50">
+                        <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="sr-only">Has attachments</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{task.attachments.length} attachment{task.attachments.length !== 1 ? 's' : ''}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {onEdit && (
                 <button
                   onClick={(e) => {
