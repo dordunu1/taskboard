@@ -52,7 +52,7 @@ export function TaskBoard({ tasks }: TaskBoardProps) {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-4">
+      <div className="space-y-4 h-full">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
           <button
@@ -62,7 +62,7 @@ export function TaskBoard({ tasks }: TaskBoardProps) {
             Create Task
           </button>
         </div>
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-h-[calc(100vh-12rem)]">
           {Object.values(TaskStatus).map((status) => (
             <TaskColumn
               key={status}

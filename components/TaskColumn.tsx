@@ -30,7 +30,7 @@ export function TaskColumn({ title, status, tasks, onEditTask }: TaskColumnProps
   return (
     <div
       ref={ref}
-      className={`flex-1 min-w-[300px] p-4 rounded-lg bg-card/50 border border-border ${
+      className={`h-full p-4 rounded-lg bg-card/50 border border-border ${
         isOver ? 'ring-2 ring-primary ring-opacity-50' : ''
       }`}
     >
@@ -38,7 +38,7 @@ export function TaskColumn({ title, status, tasks, onEditTask }: TaskColumnProps
         <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         <span className="text-sm font-medium text-muted-foreground">{tasks.length}</span>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-16rem)]">
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} onEdit={onEditTask} />
         ))}
