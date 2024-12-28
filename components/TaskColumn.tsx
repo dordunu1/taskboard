@@ -12,6 +12,11 @@ interface TaskColumnProps {
   onEditTask: (task: Task) => void
 }
 
+interface DragItem {
+  id: string
+  type: string
+}
+
 const statusLabels: Record<TaskStatus, string> = {
   [TaskStatus.IDEATION]: 'Ideation',
   [TaskStatus.TODO]: 'To Do',
@@ -20,10 +25,10 @@ const statusLabels: Record<TaskStatus, string> = {
 }
 
 export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
-  const columnRef = React.useRef<HTMLDivElement>(null)
-  const [{ isOver }, drop] = useDrop(() => ({
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [{ isOver }, dropRef] = useDrop<DragItem, void, { isOver: boolean }>(() => ({
     accept: 'task',
-    drop: (item: { id: string }) => {
+    drop: (item) => {
       updateTaskStatus(item.id, status)
     },
     collect: (monitor) => ({
@@ -31,15 +36,11 @@ export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
     }),
   }), [status])
 
-  React.useEffect(() => {
-    if (columnRef.current) {
-      drop(columnRef.current)
-    }
-  }, [drop])
+  dropRef(ref)
 
   return (
     <div
-      ref={columnRef}
+      ref={ref}
       className={`bg-white rounded-lg shadow p-4 ${
         isOver ? 'ring-2 ring-indigo-500 ring-opacity-50' : ''
       }`}
@@ -57,7 +58,7 @@ export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
           <TaskCard
             key={task.id}
             task={task}
-            onDragStart={(e, id) => e.dataTransfer.setData('taskId', id)}
+            onEdit={onEditTask}
           />
         ))}
       </div>

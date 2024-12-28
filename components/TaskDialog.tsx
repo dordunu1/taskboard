@@ -7,6 +7,7 @@ import { Task, TaskStatus, TaskPriority, TaskCategory } from '../lib/types'
 import { createTask, updateTask } from '../lib/tasks'
 import { useAuth } from '../lib/AuthContext'
 import { Boxes, FolderIcon } from 'lucide-react'
+import { Timestamp } from 'firebase/firestore'
 
 interface TaskDialogProps {
   isOpen: boolean
@@ -31,7 +32,15 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       setStatus(task.status)
       setPriority(task.priority)
       setCategory(task.category)
-      setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '')
+      // Convert Firestore Timestamp or Date to YYYY-MM-DD format
+      if (task.dueDate) {
+        const date = task.dueDate instanceof Timestamp ? 
+          task.dueDate.toDate() : 
+          new Date(task.dueDate)
+        setDueDate(date.toISOString().split('T')[0])
+      } else {
+        setDueDate('')
+      }
       setAssignee(task.assignee || '')
     } else {
       setTitle('')
@@ -54,8 +63,8 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       status,
       priority,
       category,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-      assignee: assignee || undefined,
+      dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate + 'T00:00:00')) : undefined,
+      assignee: assignee.trim() || undefined,
       createdBy: user.uid,
     }
 
@@ -157,13 +166,13 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Assignee</label>
+            <label className="block text-sm font-medium text-gray-700">Assigned To</label>
             <input
-              type="email"
+              type="text"
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Email address"
+              placeholder="Enter assignee name"
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">

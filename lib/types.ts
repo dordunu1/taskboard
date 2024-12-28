@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore'
+
 export enum TaskStatus {
   IDEATION = 'IDEATION',
   TODO = 'TODO',
@@ -21,7 +23,7 @@ export interface Attachment {
   url: string
   type: string
   size: number
-  uploadedAt: Date
+  uploadedAt: Timestamp
 }
 
 export interface Task {
@@ -31,12 +33,12 @@ export interface Task {
   status: TaskStatus
   priority: TaskPriority
   category: TaskCategory
-  dueDate?: Date
+  dueDate?: Timestamp
   assignee?: string
   attachments?: Attachment[]
   createdBy: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 export interface User {

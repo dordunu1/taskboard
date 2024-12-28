@@ -14,31 +14,24 @@ import {
   or,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import { Task, Attachment } from './types'
+import { Task, Attachment, TaskStatus } from './types'
 
 export async function createTask(taskData: Partial<Task>) {
   const tasksRef = collection(db, 'tasks')
-  const now = Timestamp.now()
-  
   const task = {
     ...taskData,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   }
-
   return addDoc(tasksRef, task)
 }
 
 export async function updateTask(taskId: string, taskData: Partial<Task>) {
   const taskRef = doc(db, 'tasks', taskId)
-  const now = Timestamp.now()
-  
-  const updates = {
+  return updateDoc(taskRef, {
     ...taskData,
-    updatedAt: now,
-  }
-
-  return updateDoc(taskRef, updates)
+    updatedAt: Timestamp.now(),
+  })
 }
 
 export async function deleteTask(taskId: string) {
@@ -46,11 +39,11 @@ export async function deleteTask(taskId: string) {
   await deleteDoc(taskRef)
 }
 
-export async function updateTaskStatus(taskId: string, status: string) {
+export async function updateTaskStatus(taskId: string, status: TaskStatus) {
   const taskRef = doc(db, 'tasks', taskId)
-  return updateDoc(taskRef, { 
+  return updateDoc(taskRef, {
     status,
-    updatedAt: Timestamp.now()
+    updatedAt: Timestamp.now(),
   })
 }
 
