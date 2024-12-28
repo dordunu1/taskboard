@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useDrag } from 'react-dnd'
 import type { Identifier } from 'dnd-core'
-import { Task, TaskCategory, TaskPriority } from '../lib/types'
+import { Task, TaskCategory, TaskPriority, TaskStatus } from '../lib/types'
 import { Boxes, FolderIcon, Pencil, Trash2 } from 'lucide-react'
 import { deleteTask } from '../lib/tasks'
 import { Timestamp } from 'firebase/firestore'
@@ -74,7 +74,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
   return (
     <div
       ref={ref}
-      className={`group bg-card p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-move ${
+      className={`group relative bg-card p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-move ${
         isDragging ? 'opacity-50' : ''
       }`}
     >
@@ -133,6 +133,11 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
           </span>
         </div>
       </div>
+      {task.status === TaskStatus.IN_PROGRESS && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted overflow-hidden rounded-b-lg">
+          <div className="h-full bg-primary animate-progress" />
+        </div>
+      )}
     </div>
   )
 } 
