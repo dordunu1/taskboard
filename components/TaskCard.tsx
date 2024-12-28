@@ -4,9 +4,15 @@ import * as React from 'react'
 import { useDrag } from 'react-dnd'
 import type { Identifier } from 'dnd-core'
 import { Task, TaskCategory, TaskPriority, TaskStatus } from '../lib/types'
-import { Boxes, FolderIcon, Pencil, Trash2 } from 'lucide-react'
+import { Boxes, FolderIcon, Link2, Pencil, Trash2 } from 'lucide-react'
 import { deleteTask } from '../lib/tasks'
 import { Timestamp } from 'firebase/firestore'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip"
 
 interface TaskCardProps {
   task: Task
@@ -128,9 +134,46 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
               </div>
             )}
           </div>
-          <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
-            {task.priority}
-          </span>
+          <div className="flex flex-col items-end gap-2">
+            <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
+              {task.priority}
+            </span>
+            {task.links && Array.isArray(task.links) && task.links.length > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="p-1 rounded-full hover:bg-accent transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (task.links && task.links.length === 1) {
+                          window.open(task.links[0], '_blank')
+                        }
+                      }}
+                    >
+                      <Link2 className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      {task.links.map((link, index) => (
+                        <a
+                          key={index}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-sm hover:text-primary"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {link}
+                        </a>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </div>
       {task.status === TaskStatus.IN_PROGRESS && (

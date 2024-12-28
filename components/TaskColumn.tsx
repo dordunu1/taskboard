@@ -6,14 +6,20 @@ import { TaskCard } from './TaskCard'
 import { Task, TaskStatus } from '../lib/types'
 import { updateTask } from '../lib/tasks'
 
-interface TaskColumnProps {
-  title: string
-  status: TaskStatus
-  tasks: Task[]
-  onEditTask?: (task: Task) => void
+const statusLabels: Record<TaskStatus, string> = {
+  [TaskStatus.IDEATION]: 'Ideation',
+  [TaskStatus.TODO]: 'To Do',
+  [TaskStatus.IN_PROGRESS]: 'In Progress',
+  [TaskStatus.COMPLETED]: 'Completed',
 }
 
-export function TaskColumn({ title, status, tasks, onEditTask }: TaskColumnProps) {
+interface TaskColumnProps {
+  status: TaskStatus
+  tasks: Task[]
+  onEditTask: (task: Task) => void
+}
+
+export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
   const ref = React.useRef<HTMLDivElement>(null)
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'task',
@@ -30,15 +36,12 @@ export function TaskColumn({ title, status, tasks, onEditTask }: TaskColumnProps
   return (
     <div
       ref={ref}
-      className={`h-full p-4 rounded-lg bg-card/50 border border-border ${
-        isOver ? 'ring-2 ring-primary ring-opacity-50' : ''
+      className={`flex flex-col h-full rounded-lg bg-muted/50 p-4 ${
+        isOver ? 'ring-2 ring-primary' : ''
       }`}
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-        <span className="text-sm font-medium text-muted-foreground">{tasks.length}</span>
-      </div>
-      <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-16rem)]">
+      <h2 className="text-lg font-semibold mb-4">{statusLabels[status]}</h2>
+      <div className="flex-1 space-y-4 overflow-auto">
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} onEdit={onEditTask} />
         ))}

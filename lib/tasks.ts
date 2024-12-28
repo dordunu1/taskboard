@@ -17,26 +17,27 @@ import { db } from './firebase'
 import { Task, Attachment, TaskStatus } from './types'
 
 export async function createTask(taskData: Partial<Task>) {
-  const tasksRef = collection(db, 'tasks')
+  const now = Timestamp.now()
   const task = {
     ...taskData,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    createdAt: now,
+    updatedAt: now,
   }
-  return addDoc(tasksRef, task)
+  return addDoc(collection(db, 'tasks'), task)
 }
 
 export async function updateTask(taskId: string, taskData: Partial<Task>) {
-  const taskRef = doc(db, 'tasks', taskId)
-  return updateDoc(taskRef, {
+  const docRef = doc(db, 'tasks', taskId)
+  const updates = {
     ...taskData,
     updatedAt: Timestamp.now(),
-  })
+  }
+  return updateDoc(docRef, updates)
 }
 
 export async function deleteTask(taskId: string) {
-  const taskRef = doc(db, 'tasks', taskId)
-  await deleteDoc(taskRef)
+  const docRef = doc(db, 'tasks', taskId)
+  return deleteDoc(docRef)
 }
 
 export async function updateTaskStatus(taskId: string, status: TaskStatus) {
@@ -64,16 +65,15 @@ export async function addTaskAttachment(taskId: string, attachment: Attachment) 
 }
 
 export function subscribeToTasks(userId: string, callback: (tasks: Task[]) => void) {
-  const tasksRef = collection(db, 'tasks')
-  const q = query(
-    tasksRef,
+  const tasksQuery = query(
+    collection(db, 'tasks'),
     or(
       where('createdBy', '==', userId),
       where('assignee', '==', userId)
     )
   )
 
-  return onSnapshot(q, (snapshot) => {
+  return onSnapshot(tasksQuery, (snapshot) => {
     const tasks = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

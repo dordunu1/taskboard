@@ -6,7 +6,7 @@ import { ProtectedRoute } from '../components/auth/ProtectedRoute'
 import { useTasks } from '../lib/TaskContext'
 
 export default function Home() {
-  const { tasks, loading } = useTasks()
+  const { loading } = useTasks()
 
   return (
     <ProtectedRoute>
@@ -16,7 +16,7 @@ export default function Home() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
         ) : (
-          <TaskBoard tasks={tasks} />
+          <TaskBoard />
         )}
       </div>
     </ProtectedRoute>

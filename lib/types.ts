@@ -39,6 +39,7 @@ export interface Task {
   createdBy: string
   createdAt: Timestamp
   updatedAt: Timestamp
+  links?: string[]
 }
 
 export interface User {

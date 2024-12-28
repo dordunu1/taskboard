@@ -1,12 +1,10 @@
 "use client"
 
 import * as React from 'react'
-import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { Task, TaskStatus, TaskPriority, TaskCategory } from '../lib/types'
 import { createTask, updateTask } from '../lib/tasks'
 import { useAuth } from '../lib/AuthContext'
-import { Boxes, FolderIcon } from 'lucide-react'
 import { Timestamp } from 'firebase/firestore'
 
 interface TaskDialogProps {
@@ -17,41 +15,42 @@ interface TaskDialogProps {
 
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const { user } = useAuth()
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [status, setStatus] = useState<TaskStatus>(TaskStatus.TODO)
-  const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM)
-  const [category, setCategory] = useState<TaskCategory>(TaskCategory.GENERAL)
-  const [dueDate, setDueDate] = useState('')
-  const [assignee, setAssignee] = useState('')
+  const [title, setTitle] = React.useState('')
+  const [description, setDescription] = React.useState('')
+  const [status, setStatus] = React.useState<TaskStatus>(TaskStatus.TODO)
+  const [priority, setPriority] = React.useState<TaskPriority>(TaskPriority.MEDIUM)
+  const [category, setCategory] = React.useState<TaskCategory>(TaskCategory.GENERAL)
+  const [dueDate, setDueDate] = React.useState<string>('')
+  const [assignee, setAssignee] = React.useState('')
+  const [links, setLinks] = React.useState<string[]>([])
+  const [linkInput, setLinkInput] = React.useState('')
 
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title)
-      setDescription(task.description)
-      setStatus(task.status)
-      setPriority(task.priority)
-      setCategory(task.category)
-      // Convert Firestore Timestamp or Date to YYYY-MM-DD format
-      if (task.dueDate) {
-        const date = task.dueDate instanceof Timestamp ? 
-          task.dueDate.toDate() : 
-          new Date(task.dueDate)
-        setDueDate(date.toISOString().split('T')[0])
+  // Update form state when task changes or dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      if (task) {
+        setTitle(task.title)
+        setDescription(task.description)
+        setStatus(task.status)
+        setPriority(task.priority)
+        setCategory(task.category)
+        setDueDate(task.dueDate ? task.dueDate.toDate().toISOString().split('T')[0] : '')
+        setAssignee(task.assignee || '')
+        setLinks(task.links || [])
       } else {
+        // Reset form for new task
+        setTitle('')
+        setDescription('')
+        setStatus(TaskStatus.TODO)
+        setPriority(TaskPriority.MEDIUM)
+        setCategory(TaskCategory.GENERAL)
         setDueDate('')
+        setAssignee('')
+        setLinks([])
       }
-      setAssignee(task.assignee || '')
-    } else {
-      setTitle('')
-      setDescription('')
-      setStatus(TaskStatus.TODO)
-      setPriority(TaskPriority.MEDIUM)
-      setCategory(TaskCategory.GENERAL)
-      setDueDate('')
-      setAssignee('')
+      setLinkInput('')
     }
-  }, [task])
+  }, [isOpen, task])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,131 +62,175 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       status,
       priority,
       category,
-      dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate + 'T00:00:00')) : undefined,
-      assignee: assignee.trim() || undefined,
+      dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate)) : undefined,
+      assignee,
+      links: links.filter(link => link.trim() !== ''),
       createdBy: user.uid,
     }
 
-    if (task) {
-      await updateTask(task.id, taskData)
-    } else {
-      await createTask(taskData)
+    try {
+      if (task) {
+        await updateTask(task.id, taskData)
+      } else {
+        await createTask(taskData)
+      }
+      onClose()
+    } catch (error) {
+      console.error('Error saving task:', error)
     }
-    
-    onClose()
   }
 
-  const categoryIcons = {
-    [TaskCategory.BLOCKCHAIN]: <Boxes className="w-5 h-5" />,
-    [TaskCategory.GENERAL]: <FolderIcon className="w-5 h-5" />,
+  const addLink = () => {
+    if (linkInput.trim() && !links.includes(linkInput.trim())) {
+      setLinks([...links, linkInput.trim()])
+      setLinkInput('')
+    }
+  }
+
+  const removeLink = (index: number) => {
+    setLinks(links.filter((_, i) => i !== index))
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>{task ? 'Edit Task' : 'Create New Task'}</DialogTitle>
+          <DialogTitle>{task ? 'Edit Task' : 'Create Task'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
               rows={3}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {Object.values(TaskStatus).map((s) => (
-                <option key={s} value={s}>
-                  {s.replace('_', ' ')}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+              >
+                {Object.values(TaskStatus).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as TaskPriority)}
+                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+              >
+                {Object.values(TaskPriority).map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Priority</label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {Object.values(TaskPriority).map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
-            <div className="mt-1 flex gap-4">
-              {Object.values(TaskCategory).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${
-                    category === cat 
-                      ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-500' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {categoryIcons[cat as TaskCategory]}
-                  <span>{cat}</span>
-                </button>
-              ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as TaskCategory)}
+                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+              >
+                {Object.values(TaskCategory).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+              />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Assigned To</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Assignee</label>
             <input
               type="text"
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              placeholder="Enter assignee name"
+              className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Links</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="url"
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                placeholder="Enter URL"
+                className="flex-1 px-3 py-2 border rounded-md bg-background text-foreground"
+              />
+              <button
+                type="button"
+                onClick={addLink}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Add
+              </button>
+            </div>
+            {links.length > 0 && (
+              <ul className="space-y-2">
+                {links.map((link, index) => (
+                  <li key={index} className="flex items-center justify-between gap-2 text-sm">
+                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate">
+                      {link}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      className="text-destructive hover:text-destructive/90"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 border rounded-md hover:bg-accent"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
             >
-              {task ? 'Update Task' : 'Create Task'}
+              {task ? 'Update' : 'Create'}
             </button>
           </div>
         </form>
