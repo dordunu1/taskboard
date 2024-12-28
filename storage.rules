@@ -11,16 +11,20 @@ service firebase.storage {
       return request.auth.uid == userId;
     }
     
+    function isAllowedFileType() {
+      return request.resource.contentType.matches('image/jpeg|image/png|image/gif|application/pdf|text/plain|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+    
     // Task attachments rules
-    match /tasks/{taskId}/{fileName} {
+    match /tasks/{taskId}/attachments/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated()
+      allow write: if isAuthenticated() 
         && request.resource.size < 10 * 1024 * 1024  // 10MB max file size
-        && request.resource.contentType.matches('image/.*|application/pdf|text/.*');
+        && isAllowedFileType();
     }
     
     // User avatars rules
-    match /users/{userId}/avatar.{extension} {
+    match /users/{userId}/avatars/{fileName} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && isOwner(userId)
         && request.resource.size < 5 * 1024 * 1024  // 5MB max file size

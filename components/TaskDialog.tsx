@@ -1,56 +1,46 @@
 "use client"
 
-import * as React from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
-import { Task, TaskStatus, TaskPriority, TaskCategory } from '../lib/types'
-import { createTask, updateTask } from '../lib/tasks'
-import { useAuth } from '../lib/AuthContext'
-import { Timestamp } from 'firebase/firestore'
+import * as React from "react"
+import { Task, TaskStatus, TaskPriority, TaskCategory, MediaAttachment } from "../lib/types"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import { Textarea } from "./ui/textarea"
+import { Label } from "./ui/label"
+import { createTask, updateTask } from "../lib/tasks"
+import { useAuth } from "../lib/AuthContext"
+import { Timestamp } from "firebase/firestore"
+import { uploadTaskMedia } from "../lib/storage"
+import { FileUp, Loader2, X } from "lucide-react"
+import { cn } from "../lib/utils"
 
 interface TaskDialogProps {
-  isOpen: boolean
-  onClose: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   task?: Task
+  onTaskCreated?: () => void
+  onTaskUpdated?: () => void
 }
 
-export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
+export function TaskDialog({
+  open,
+  onOpenChange,
+  task,
+  onTaskCreated,
+  onTaskUpdated,
+}: TaskDialogProps) {
   const { user } = useAuth()
-  const [title, setTitle] = React.useState('')
-  const [description, setDescription] = React.useState('')
-  const [status, setStatus] = React.useState<TaskStatus>(TaskStatus.TODO)
-  const [priority, setPriority] = React.useState<TaskPriority>(TaskPriority.MEDIUM)
-  const [category, setCategory] = React.useState<TaskCategory>(TaskCategory.GENERAL)
-  const [dueDate, setDueDate] = React.useState<string>('')
-  const [assignee, setAssignee] = React.useState('')
-  const [links, setLinks] = React.useState<string[]>([])
-  const [linkInput, setLinkInput] = React.useState('')
-
-  // Update form state when task changes or dialog opens
-  React.useEffect(() => {
-    if (isOpen) {
-      if (task) {
-        setTitle(task.title)
-        setDescription(task.description)
-        setStatus(task.status)
-        setPriority(task.priority)
-        setCategory(task.category)
-        setDueDate(task.dueDate ? task.dueDate.toDate().toISOString().split('T')[0] : '')
-        setAssignee(task.assignee || '')
-        setLinks(task.links || [])
-      } else {
-        // Reset form for new task
-        setTitle('')
-        setDescription('')
-        setStatus(TaskStatus.TODO)
-        setPriority(TaskPriority.MEDIUM)
-        setCategory(TaskCategory.GENERAL)
-        setDueDate('')
-        setAssignee('')
-        setLinks([])
-      }
-      setLinkInput('')
-    }
-  }, [isOpen, task])
+  const [title, setTitle] = React.useState(task?.title || "")
+  const [description, setDescription] = React.useState(task?.description || "")
+  const [status, setStatus] = React.useState<TaskStatus>(task?.status || TaskStatus.TODO)
+  const [priority, setPriority] = React.useState<TaskPriority>(task?.priority || TaskPriority.MEDIUM)
+  const [category, setCategory] = React.useState<TaskCategory>(task?.category || TaskCategory.GENERAL)
+  const [dueDate, setDueDate] = React.useState(task?.dueDate ? new Date(task.dueDate.toDate()) : null)
+  const [links, setLinks] = React.useState<string[]>(task?.links || [])
+  const [newLink, setNewLink] = React.useState("")
+  const [attachments, setAttachments] = React.useState<MediaAttachment[]>(task?.attachments || [])
+  const [isUploading, setIsUploading] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,68 +52,94 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       status,
       priority,
       category,
-      dueDate: dueDate ? Timestamp.fromDate(new Date(dueDate)) : undefined,
-      assignee,
-      links: links.filter(link => link.trim() !== ''),
+      dueDate: dueDate ? Timestamp.fromDate(dueDate) : undefined,
+      links,
+      attachments,
       createdBy: user.uid,
     }
 
     try {
       if (task) {
         await updateTask(task.id, taskData)
+        onTaskUpdated?.()
       } else {
         await createTask(taskData)
+        onTaskCreated?.()
       }
-      onClose()
+      onOpenChange(false)
     } catch (error) {
-      console.error('Error saving task:', error)
+      console.error("Error saving task:", error)
     }
   }
 
-  const addLink = () => {
-    if (linkInput.trim() && !links.includes(linkInput.trim())) {
-      setLinks([...links, linkInput.trim()])
-      setLinkInput('')
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || !user) return
+
+    setIsUploading(true)
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const taskId = task?.id || 'temp-' + Date.now()
+        return await uploadTaskMedia(file, taskId, user.uid)
+      })
+
+      const newAttachments = await Promise.all(uploadPromises)
+      setAttachments([...attachments, ...newAttachments])
+    } catch (error) {
+      console.error("Error uploading files:", error)
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
-  const removeLink = (index: number) => {
-    setLinks(links.filter((_, i) => i !== index))
+  const removeAttachment = (attachmentId: string) => {
+    setAttachments(attachments.filter(a => a.id !== attachmentId))
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{task ? 'Edit Task' : 'Create Task'}</DialogTitle>
+          <DialogTitle>{task ? "Edit Task" : "Create Task"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Title</label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Description</label>
-            <textarea
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
               rows={3}
             />
           </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Status</label>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
               <select
+                id="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 {Object.values(TaskStatus).map((s) => (
                   <option key={s} value={s}>
@@ -132,12 +148,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Priority</label>
+
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
               <select
+                id="priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 {Object.values(TaskPriority).map((p) => (
                   <option key={p} value={p}>
@@ -147,13 +165,15 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               </select>
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
               <select
+                id="category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TaskCategory)}
-                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                className="w-full px-3 py-2 border rounded-md bg-background"
               >
                 {Object.values(TaskCategory).map((c) => (
                   <option key={c} value={c}>
@@ -162,76 +182,135 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
-              <input
+
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">Due Date</Label>
+              <Input
+                id="dueDate"
                 type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
+                onChange={(e) => setDueDate(e.target.value ? new Date(e.target.value) : null)}
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Assignee</label>
-            <input
-              type="text"
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Links</label>
-            <div className="flex gap-2 mb-2">
+
+          <div className="space-y-2">
+            <Label>Attachments</Label>
+            <div className="space-y-2">
               <input
-                type="url"
-                value={linkInput}
-                onChange={(e) => setLinkInput(e.target.value)}
-                placeholder="Enter URL"
-                className="flex-1 px-3 py-2 border rounded-md bg-background text-foreground"
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileUpload}
+                multiple
+                className="hidden"
+                accept={[
+                  'image/*',
+                  'application/pdf',
+                  'text/plain',
+                  'application/msword',
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                ].join(',')}
               />
-              <button
+              <Button
                 type="button"
-                onClick={addLink}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                variant="outline"
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FileUp className="w-4 h-4 mr-2" />
+                )}
+                {isUploading ? "Uploading..." : "Upload Files"}
+              </Button>
+              
+              <div className="space-y-2">
+                {attachments.map((attachment) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center justify-between p-2 border rounded-md bg-muted"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href={attachment.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {attachment.fileName}
+                      </a>
+                      <span className="text-xs text-muted-foreground">
+                        ({formatFileSize(attachment.fileSize)})
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeAttachment(attachment.id)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Links</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newLink}
+                onChange={(e) => setNewLink(e.target.value)}
+                placeholder="Add a link"
+              />
+              <Button
+                type="button"
+                onClick={() => {
+                  if (newLink) {
+                    setLinks([...links, newLink])
+                    setNewLink("")
+                  }
+                }}
               >
                 Add
-              </button>
+              </Button>
             </div>
-            {links.length > 0 && (
-              <ul className="space-y-2">
-                {links.map((link, index) => (
-                  <li key={index} className="flex items-center justify-between gap-2 text-sm">
-                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate">
-                      {link}
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => removeLink(index)}
-                      className="text-destructive hover:text-destructive/90"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="space-y-2">
+              {links.map((link, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 border rounded-md bg-muted"
+                >
+                  <a
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm hover:underline"
+                  >
+                    {link}
+                  </a>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLinks(links.filter((_, i) => i !== index))}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
+
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-md hover:bg-accent"
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-            >
-              {task ? 'Update' : 'Create'}
-            </button>
+            </Button>
+            <Button type="submit">{task ? "Update" : "Create"}</Button>
           </div>
         </form>
       </DialogContent>

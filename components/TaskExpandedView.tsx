@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Task, Comment } from '../lib/types'
+import { Task, Comment, MediaAttachment } from '../lib/types'
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog'
 import { Button } from './ui/button'
-import { MessageCircle, Send, User } from 'lucide-react'
+import { MessageCircle, Send, User, Paperclip } from 'lucide-react'
 import { addComment, getComments } from '../lib/tasks'
 import { Timestamp } from 'firebase/firestore'
 
@@ -110,6 +110,40 @@ export function TaskExpandedView({ task, isOpen, onClose }: TaskExpandedViewProp
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <p className="text-muted-foreground">{task.description}</p>
             
+            {task.attachments && task.attachments.length > 0 && (
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                  <Paperclip className="w-5 h-5" />
+                  Attachments
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {task.attachments.map((attachment: MediaAttachment) => (
+                    <div key={attachment.id} className="relative group">
+                      {attachment.fileType.startsWith('image/') ? (
+                        <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="block">
+                          <img 
+                            src={attachment.fileUrl} 
+                            alt={attachment.fileName}
+                            className="w-full h-48 object-cover rounded-lg border hover:opacity-90 transition-opacity"
+                          />
+                        </a>
+                      ) : (
+                        <a 
+                          href={attachment.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center p-4 border rounded-lg hover:bg-muted transition-colors"
+                        >
+                          <Paperclip className="w-4 h-4 mr-2" />
+                          <span className="text-sm truncate">{attachment.fileName}</span>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                 <MessageCircle className="w-5 h-5" />

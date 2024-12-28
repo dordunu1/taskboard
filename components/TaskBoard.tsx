@@ -7,12 +7,26 @@ import { TaskColumn } from './TaskColumn'
 import { TaskDialog } from './TaskDialog'
 import { Task, TaskStatus } from '../lib/types'
 import { useTasks } from '../lib/TaskContext'
-import { Plus } from 'lucide-react'
+import { useAuth } from '../lib/AuthContext'
+import { LogOut, Plus, User } from 'lucide-react'
+import { Button } from './ui/button'
+import { useRouter } from 'next/navigation'
 
 export function TaskBoard() {
+  const router = useRouter()
+  const { user, logout } = useAuth()
   const { tasks } = useTasks()
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [selectedTask, setSelectedTask] = React.useState<Task | undefined>()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/auth')
+    } catch (error) {
+      console.error('Failed to logout:', error)
+    }
+  }
 
   const handleEditTask = (task: Task) => {
     setSelectedTask(task)
@@ -22,6 +36,13 @@ export function TaskBoard() {
   const handleCreateTask = () => {
     setSelectedTask(undefined)
     setIsDialogOpen(true)
+  }
+
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      setSelectedTask(undefined)
+    }
   }
 
   const tasksByStatus = React.useMemo(() => {
@@ -43,34 +64,53 @@ export function TaskBoard() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="h-full p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
-          <button
-            onClick={handleCreateTask}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Task
-          </button>
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <div className="flex items-center justify-between px-6 h-16">
+            <h1 className="text-xl font-semibold text-foreground">Tasks</h1>
+            <div className="flex items-center gap-8">
+              <Button
+                onClick={handleCreateTask}
+                className="inline-flex items-center gap-2"
+                size="default"
+              >
+                <Plus className="w-4 h-4" />
+                Create Task
+              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground border-r pr-8">
+                <User className="w-4 h-4" />
+                <span>{user?.email}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-4 h-[calc(100vh-8rem)]">
-          {Object.entries(tasksByStatus).map(([status, tasks]) => (
-            <TaskColumn
-              key={status}
-              status={status as TaskStatus}
-              tasks={tasks}
-              onEditTask={handleEditTask}
-            />
-          ))}
+        <div className="p-6">
+          <div className="grid grid-cols-4 gap-6 max-w-[1600px] mx-auto">
+            {Object.entries(tasksByStatus).map(([status, tasks]) => (
+              <TaskColumn
+                key={status}
+                status={status as TaskStatus}
+                tasks={tasks}
+                onEditTask={handleEditTask}
+              />
+            ))}
+          </div>
         </div>
         <TaskDialog
-          isOpen={isDialogOpen}
-          onClose={() => {
-            setIsDialogOpen(false)
-            setSelectedTask(undefined)
-          }}
+          open={isDialogOpen}
+          onOpenChange={handleDialogChange}
           task={selectedTask}
+          onTaskCreated={() => handleDialogChange(false)}
+          onTaskUpdated={() => handleDialogChange(false)}
         />
       </div>
     </DndProvider>

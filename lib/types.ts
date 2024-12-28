@@ -1,29 +1,31 @@
 import { Timestamp } from 'firebase/firestore'
 
 export enum TaskStatus {
-  IDEATION = 'IDEATION',
-  TODO = 'TODO',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
+  IDEATION = 'Ideation',
+  TODO = 'To Do',
+  IN_PROGRESS = 'In Progress',
+  COMPLETED = 'Completed',
 }
 
 export enum TaskPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
+  LOW = 'Low',
+  MEDIUM = 'Medium',
+  HIGH = 'High',
 }
 
 export enum TaskCategory {
-  BLOCKCHAIN = 'BLOCKCHAIN',
-  GENERAL = 'GENERAL',
+  BLOCKCHAIN = 'Blockchain',
+  GENERAL = 'General',
 }
 
-export interface Attachment {
-  name: string
-  url: string
-  type: string
-  size: number
+export interface MediaAttachment {
+  id: string
+  fileName: string
+  fileUrl: string
+  fileType: string
+  fileSize: number
   uploadedAt: Timestamp
+  uploadedBy: string
 }
 
 export interface Task {
@@ -35,7 +37,8 @@ export interface Task {
   category: TaskCategory
   dueDate?: Timestamp
   assignee?: string
-  attachments?: Attachment[]
+  collaborators?: string[]
+  attachments?: MediaAttachment[]
   createdBy: string
   createdAt: Timestamp
   updatedAt: Timestamp
