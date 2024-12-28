@@ -83,20 +83,20 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
     <>
       <div
         ref={ref}
-        className={`group relative bg-card p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-pointer ${
+        className={`group relative bg-card p-3 sm:p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-pointer ${
           isDragging ? 'opacity-50' : ''
         }`}
         onClick={() => setIsExpanded(true)}
       >
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="text-sm sm:text-base font-semibold text-foreground group-hover:text-primary line-clamp-2">
             {task.title}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground group-hover:text-primary">
+          <div className="flex items-start gap-1 sm:gap-2 shrink-0">
+            <span className="text-muted-foreground group-hover:text-primary mt-0.5">
               {categoryIcons[task.category]}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1">
               {task.attachments && task.attachments.length > 0 && (
                 <TooltipProvider>
                   <Tooltip>
@@ -112,36 +112,38 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                   </Tooltip>
                 </TooltipProvider>
               )}
-              {onEdit && (
+              <div className="flex items-center">
+                {onEdit && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEdit(task)
+                    }}
+                    className="p-1 rounded-full hover:bg-accent transition-colors"
+                    title="Edit task"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
+                  </button>
+                )}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit(task)
-                  }}
-                  className="p-1 rounded-full hover:bg-accent transition-colors"
-                  title="Edit task"
+                  onClick={handleDelete}
+                  className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
+                  title="Delete task"
                 >
-                  <Pencil className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                  <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
                 </button>
-              )}
-              <button
-                onClick={handleDelete}
-                className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
-                title="Delete task"
-              >
-                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-              </button>
+              </div>
             </div>
           </div>
         </div>
-        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+        <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">
           {task.description}
         </p>
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="space-y-1 sm:space-y-2">
               {task.dueDate && (
-                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                   <span className="font-medium text-foreground">Due:</span>
                   {formatDate(task.dueDate)}
                 </div>
@@ -151,8 +153,10 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex items-center gap-1">
-                        <User2 className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{task.assignee}</span>
+                        <User2 className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-xs sm:text-sm text-muted-foreground truncate max-w-[150px]">
+                          {task.assignee}
+                        </span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -162,11 +166,11 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                 </TooltipProvider>
               )}
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
+            <div className="flex items-center gap-2 justify-end">
+              <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
                 {task.priority}
               </span>
-              {task.links && Array.isArray(task.links) && task.links.length > 0 && (
+              {task.links && task.links.length > 0 && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -179,7 +183,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                           }
                         }}
                       >
-                        <Link2 className="w-4 h-4 text-muted-foreground hover:text-primary" />
+                        <Link2 className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -190,7 +194,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-sm hover:text-primary"
+                            className="block text-xs sm:text-sm hover:text-primary"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {link}

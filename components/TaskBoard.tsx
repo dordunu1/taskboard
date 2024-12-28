@@ -66,35 +66,37 @@ export function TaskBoard() {
     <DndProvider backend={HTML5Backend}>
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="flex items-center justify-between px-6 h-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-4 sm:h-16 gap-4 sm:gap-0">
             <h1 className="text-xl font-semibold text-foreground">Tasks</h1>
-            <div className="flex items-center gap-8">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-8 w-full sm:w-auto">
               <Button
                 onClick={handleCreateTask}
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-2"
                 size="default"
               >
                 <Plus className="w-4 h-4" />
                 Create Task
               </Button>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground border-r pr-8">
-                <User className="w-4 h-4" />
-                <span>{user?.email}</span>
+              <div className="flex items-center justify-between sm:justify-start gap-2 text-sm text-muted-foreground sm:border-r sm:pr-8">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span className="truncate max-w-[200px]">{user?.email}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive shrink-0"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="inline-flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
             </div>
           </div>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-4 gap-6 max-w-[1600px] mx-auto">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-[1600px] mx-auto">
             {Object.entries(tasksByStatus).map(([status, tasks]) => (
               <TaskColumn
                 key={status}
