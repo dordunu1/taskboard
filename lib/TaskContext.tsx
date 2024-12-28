@@ -33,7 +33,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    const unsubscribe = subscribeToTasks((tasks) => {
+    const unsubscribe = subscribeToTasks(user.uid, (tasks) => {
       setTasks(tasks)
       setLoading(false)
     })

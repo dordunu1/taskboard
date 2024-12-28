@@ -10,6 +10,8 @@ import {
   orderBy,
   onSnapshot,
   Timestamp,
+  where,
+  or,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import { Task, Attachment } from './types'
@@ -60,9 +62,13 @@ export async function addTaskAttachment(taskId: string, attachment: Attachment) 
   })
 }
 
-export function subscribeToTasks(callback: (tasks: Task[]) => void) {
+export function subscribeToTasks(userId: string, callback: (tasks: Task[]) => void) {
   const q = query(
     collection(db, 'tasks'),
+    or(
+      where('createdBy', '==', userId),
+      where('assignee', '==', userId)
+    ),
     orderBy('updatedAt', 'desc')
   )
 
