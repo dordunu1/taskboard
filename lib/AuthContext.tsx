@@ -3,13 +3,13 @@
 import * as React from 'react'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { 
-  User,
-  signInWithEmailAndPassword,
+  signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
+  signInWithPopup,
   GoogleAuthProvider,
-  signInWithPopup
+  signOut,
+  sendPasswordResetEmail,
+  User 
 } from 'firebase/auth'
 import { auth } from './firebase'
 
@@ -19,7 +19,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
-  logOut: () => Promise<void>
+  logout: () => Promise<void>
+  resetPassword: (email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -37,12 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user)
       setLoading(false)
     })
 
-    return () => unsubscribe()
+    return unsubscribe
   }, [])
 
   const signIn = async (email: string, password: string) => {
@@ -58,8 +59,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithPopup(auth, provider)
   }
 
-  const logOut = async () => {
+  const logout = async () => {
     await signOut(auth)
+  }
+
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email)
   }
 
   const value = {
@@ -68,12 +73,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signInWithGoogle,
-    logOut,
+    logout,
+    resetPassword,
   }
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   )
 } 

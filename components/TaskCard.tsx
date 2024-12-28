@@ -1,79 +1,64 @@
 "use client"
 
 import * as React from 'react'
-import { useDrag } from 'react-dnd'
-import { Task, TaskPriority } from '../lib/types'
+import { Task, TaskCategory, TaskPriority } from '../lib/types'
+import { Boxes, FolderIcon } from 'lucide-react'
 
 interface TaskCardProps {
   task: Task
-  onEdit: () => void
+  onDragStart: (e: React.DragEvent, taskId: string) => void
 }
 
-const priorityColors: Record<TaskPriority, string> = {
-  low: 'bg-green-100 text-green-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  high: 'bg-red-100 text-red-800',
+const priorityColors: Record<TaskPriority, { bg: string; text: string }> = {
+  [TaskPriority.HIGH]: { bg: 'bg-red-100', text: 'text-red-800' },
+  [TaskPriority.MEDIUM]: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+  [TaskPriority.LOW]: { bg: 'bg-green-100', text: 'text-green-800' },
 }
 
-export function TaskCard({ task, onEdit }: TaskCardProps) {
-  const cardRef = React.useRef<HTMLDivElement>(null)
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'task',
-    item: { id: task.id },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  }), [task.id])
+export function TaskCard({ task, onDragStart }: TaskCardProps) {
+  const categoryIcons = {
+    [TaskCategory.BLOCKCHAIN]: <Boxes className="w-4 h-4" />,
+    [TaskCategory.GENERAL]: <FolderIcon className="w-4 h-4" />,
+  }
 
-  React.useEffect(() => {
-    if (cardRef.current) {
-      drag(cardRef.current)
-    }
-  }, [drag])
+  const priorityColor = priorityColors[task.priority]
 
   return (
     <div
-      ref={cardRef}
-      className={`bg-white border rounded-lg shadow-sm p-4 cursor-move ${
-        isDragging ? 'opacity-50' : ''
-      }`}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+      draggable
+      onDragStart={(e) => onDragStart(e, task.id)}
+      className="group bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all cursor-move"
     >
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-medium text-gray-900">{task.title}</h4>
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-            priorityColors[task.priority]
-          }`}
-        >
-          {task.priority}
-        </span>
-      </div>
-      <p className="text-sm text-gray-500 mb-4 line-clamp-2">{task.description}</p>
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <div className="flex items-center space-x-2">
-          {task.assignee && (
-            <span className="inline-flex items-center">
-              <span className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-1">
-                {task.assignee.charAt(0).toUpperCase()}
-              </span>
-              {task.assignee}
-            </span>
-          )}
+        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
+          {task.title}
+        </h3>
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text}`}>
+            {task.priority}
+          </span>
+          <span className="text-gray-500 group-hover:text-blue-500">
+            {categoryIcons[task.category]}
+          </span>
         </div>
+      </div>
+      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        {task.description}
+      </p>
+      <div className="space-y-1">
         {task.dueDate && (
-          <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+          <div className="text-sm text-gray-500 flex items-center gap-1">
+            <span className="font-medium">Due:</span>
+            {new Date(task.dueDate).toLocaleDateString()}
+          </div>
+        )}
+        {task.assignee && (
+          <div className="text-sm text-gray-500 flex items-center gap-1">
+            <span className="font-medium">Assigned to:</span>
+            {task.assignee}
+          </div>
         )}
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onEdit()
-        }}
-        className="mt-4 w-full inline-flex justify-center items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Edit
-      </button>
     </div>
   )
 } 

@@ -1,5 +1,28 @@
-export type TaskStatus = 'ideation' | 'todo' | 'inProgress' | 'completed'
-export type TaskPriority = 'low' | 'medium' | 'high'
+export enum TaskStatus {
+  IDEATION = 'IDEATION',
+  TODO = 'TODO',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum TaskPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+}
+
+export enum TaskCategory {
+  BLOCKCHAIN = 'BLOCKCHAIN',
+  GENERAL = 'GENERAL',
+}
+
+export interface Attachment {
+  name: string
+  url: string
+  type: string
+  size: number
+  uploadedAt: Date
+}
 
 export interface Task {
   id: string
@@ -7,22 +30,13 @@ export interface Task {
   description: string
   status: TaskStatus
   priority: TaskPriority
-  createdBy: string
+  category: TaskCategory
+  dueDate?: Date
   assignee?: string
-  dueDate?: string
   attachments?: Attachment[]
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Attachment {
-  id: string
-  name: string
-  url: string
-  type: string
-  size: number
-  createdAt: string
   createdBy: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface User {

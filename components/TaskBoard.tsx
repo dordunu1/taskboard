@@ -7,7 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { TaskDialog } from './TaskDialog'
 import { TaskColumn } from './TaskColumn'
 import { useTasks } from '../lib/TaskContext'
-import { Task } from '../lib/types'
+import { Task, TaskStatus } from '../lib/types'
 
 export function TaskBoard() {
   const { tasks, loading } = useTasks()
@@ -25,10 +25,10 @@ export function TaskBoard() {
   }
 
   const tasksByStatus = {
-    ideation: tasks.filter((task) => task.status === 'ideation'),
-    todo: tasks.filter((task) => task.status === 'todo'),
-    inProgress: tasks.filter((task) => task.status === 'inProgress'),
-    completed: tasks.filter((task) => task.status === 'completed'),
+    [TaskStatus.IDEATION]: tasks.filter((task) => task.status === TaskStatus.IDEATION),
+    [TaskStatus.TODO]: tasks.filter((task) => task.status === TaskStatus.TODO),
+    [TaskStatus.IN_PROGRESS]: tasks.filter((task) => task.status === TaskStatus.IN_PROGRESS),
+    [TaskStatus.COMPLETED]: tasks.filter((task) => task.status === TaskStatus.COMPLETED),
   }
 
   if (loading) {
@@ -54,30 +54,30 @@ export function TaskBoard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <TaskColumn
-            status="ideation"
-            tasks={tasksByStatus.ideation}
+            status={TaskStatus.IDEATION}
+            tasks={tasksByStatus[TaskStatus.IDEATION]}
             onEditTask={handleEditTask}
           />
           <TaskColumn
-            status="todo"
-            tasks={tasksByStatus.todo}
+            status={TaskStatus.TODO}
+            tasks={tasksByStatus[TaskStatus.TODO]}
             onEditTask={handleEditTask}
           />
           <TaskColumn
-            status="inProgress"
-            tasks={tasksByStatus.inProgress}
+            status={TaskStatus.IN_PROGRESS}
+            tasks={tasksByStatus[TaskStatus.IN_PROGRESS]}
             onEditTask={handleEditTask}
           />
           <TaskColumn
-            status="completed"
-            tasks={tasksByStatus.completed}
+            status={TaskStatus.COMPLETED}
+            tasks={tasksByStatus[TaskStatus.COMPLETED]}
             onEditTask={handleEditTask}
           />
         </div>
 
         <TaskDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
           task={selectedTask}
         />
       </div>

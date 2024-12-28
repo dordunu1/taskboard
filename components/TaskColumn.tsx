@@ -13,10 +13,10 @@ interface TaskColumnProps {
 }
 
 const statusLabels: Record<TaskStatus, string> = {
-  ideation: 'Ideation',
-  todo: 'To Do',
-  inProgress: 'In Progress',
-  completed: 'Completed',
+  [TaskStatus.IDEATION]: 'Ideation',
+  [TaskStatus.TODO]: 'To Do',
+  [TaskStatus.IN_PROGRESS]: 'In Progress',
+  [TaskStatus.COMPLETED]: 'Completed',
 }
 
 export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
@@ -57,7 +57,7 @@ export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
           <TaskCard
             key={task.id}
             task={task}
-            onEdit={() => onEditTask(task)}
+            onDragStart={(e, id) => e.dataTransfer.setData('taskId', id)}
           />
         ))}
       </div>

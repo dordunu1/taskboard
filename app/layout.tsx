@@ -1,8 +1,9 @@
 import * as React from 'react'
+import type { Metadata } from 'next'
 import './globals.css'
 import { ClientLayout } from './client-layout'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Web3 Task Board',
   description: 'A task board application for Web3 development workflow management',
 }
@@ -14,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen bg-gray-50">
         <ClientLayout>
           {children}
         </ClientLayout>
