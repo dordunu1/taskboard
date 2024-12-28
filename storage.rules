@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Task attachments rules
+    match /tasks/{taskId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+        && request.resource.size < 10 * 1024 * 1024  // 10MB max file size
+        && request.resource.contentType.matches('image/.*|application/pdf|text/.*');
+    }
+    
+    // User avatars rules
+    match /users/{userId}/avatar.{extension} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isOwner(userId)
+        && request.resource.size < 5 * 1024 * 1024  // 5MB max file size
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+} 
