@@ -13,10 +13,25 @@ interface TaskCardProps {
   onEdit?: (task: Task) => void
 }
 
-const priorityColors: Record<TaskPriority, { bg: string; text: string }> = {
-  [TaskPriority.HIGH]: { bg: 'bg-red-100', text: 'text-red-800' },
-  [TaskPriority.MEDIUM]: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
-  [TaskPriority.LOW]: { bg: 'bg-green-100', text: 'text-green-800' },
+const priorityColors: Record<TaskPriority, { bg: string; text: string; darkBg: string; darkText: string }> = {
+  [TaskPriority.HIGH]: { 
+    bg: 'bg-red-100', 
+    text: 'text-red-800',
+    darkBg: 'dark:bg-red-500/20',
+    darkText: 'dark:text-red-300'
+  },
+  [TaskPriority.MEDIUM]: { 
+    bg: 'bg-yellow-100', 
+    text: 'text-yellow-800',
+    darkBg: 'dark:bg-yellow-500/20',
+    darkText: 'dark:text-yellow-200'
+  },
+  [TaskPriority.LOW]: { 
+    bg: 'bg-green-100', 
+    text: 'text-green-800',
+    darkBg: 'dark:bg-green-500/20',
+    darkText: 'dark:text-green-300'
+  },
 }
 
 interface DragItem {
@@ -59,16 +74,16 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
   return (
     <div
       ref={ref}
-      className={`group bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-500 hover:shadow-md transition-all cursor-move ${
+      className={`group bg-card p-4 rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all cursor-move ${
         isDragging ? 'opacity-50' : ''
       }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
+        <h3 className="text-lg font-semibold text-foreground group-hover:text-primary">
           {task.title}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="text-gray-500 group-hover:text-blue-500">
+          <span className="text-muted-foreground group-hover:text-primary">
             {categoryIcons[task.category]}
           </span>
           <div className="flex items-center gap-1">
@@ -78,42 +93,42 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
                   e.stopPropagation()
                   onEdit(task)
                 }}
-                className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-1 rounded-full hover:bg-accent transition-colors"
                 title="Edit task"
               >
-                <Pencil className="w-4 h-4 text-gray-500 hover:text-blue-500" />
+                <Pencil className="w-4 h-4 text-muted-foreground hover:text-primary" />
               </button>
             )}
             <button
               onClick={handleDelete}
-              className="p-1 rounded-full hover:bg-red-100 transition-colors"
+              className="p-1 rounded-full hover:bg-destructive/10 transition-colors"
               title="Delete task"
             >
-              <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
+              <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
             </button>
           </div>
         </div>
       </div>
-      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+      <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
         {task.description}
       </p>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             {task.dueDate && (
-              <div className="text-sm text-gray-500 flex items-center gap-1">
-                <span className="font-medium">Due:</span>
+              <div className="text-sm text-muted-foreground flex items-center gap-1">
+                <span className="font-medium text-foreground">Due:</span>
                 {formatDate(task.dueDate)}
               </div>
             )}
             {task.assignee && (
-              <div className="text-sm text-gray-500 flex items-center gap-1">
-                <span className="font-medium">Assigned to:</span>
+              <div className="text-sm text-muted-foreground flex items-center gap-1">
+                <span className="font-medium text-foreground">Assigned to:</span>
                 {task.assignee}
               </div>
             )}
           </div>
-          <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text}`}>
+          <span className={`px-2 py-1 text-xs rounded-full font-medium ${priorityColor.bg} ${priorityColor.text} ${priorityColor.darkBg} ${priorityColor.darkText}`}>
             {task.priority}
           </span>
         </div>

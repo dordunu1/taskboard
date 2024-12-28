@@ -4,62 +4,43 @@ import * as React from 'react'
 import { useDrop } from 'react-dnd'
 import { TaskCard } from './TaskCard'
 import { Task, TaskStatus } from '../lib/types'
-import { updateTaskStatus } from '../lib/tasks'
+import { updateTask } from '../lib/tasks'
 
 interface TaskColumnProps {
+  title: string
   status: TaskStatus
   tasks: Task[]
-  onEditTask: (task: Task) => void
+  onEditTask?: (task: Task) => void
 }
 
-interface DragItem {
-  id: string
-  type: string
-}
-
-const statusLabels: Record<TaskStatus, string> = {
-  [TaskStatus.IDEATION]: 'Ideation',
-  [TaskStatus.TODO]: 'To Do',
-  [TaskStatus.IN_PROGRESS]: 'In Progress',
-  [TaskStatus.COMPLETED]: 'Completed',
-}
-
-export function TaskColumn({ status, tasks, onEditTask }: TaskColumnProps) {
+export function TaskColumn({ title, status, tasks, onEditTask }: TaskColumnProps) {
   const ref = React.useRef<HTMLDivElement>(null)
-  const [{ isOver }, dropRef] = useDrop<DragItem, void, { isOver: boolean }>(() => ({
+  const [{ isOver }, drop] = useDrop(() => ({
     accept: 'task',
-    drop: (item) => {
-      updateTaskStatus(item.id, status)
+    drop: async (item: { id: string }) => {
+      await updateTask(item.id, { status })
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
     }),
   }), [status])
 
-  dropRef(ref)
+  drop(ref)
 
   return (
     <div
       ref={ref}
-      className={`bg-white rounded-lg shadow p-4 ${
-        isOver ? 'ring-2 ring-indigo-500 ring-opacity-50' : ''
+      className={`flex-1 min-w-[300px] p-4 rounded-lg bg-card/50 border border-border ${
+        isOver ? 'ring-2 ring-primary ring-opacity-50' : ''
       }`}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">
-          {statusLabels[status]}
-        </h3>
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-          {tasks.length}
-        </span>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <span className="text-sm font-medium text-muted-foreground">{tasks.length}</span>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onEdit={onEditTask}
-          />
+          <TaskCard key={task.id} task={task} onEdit={onEditTask} />
         ))}
       </div>
     </div>

@@ -1,18 +1,26 @@
 "use client"
 
 import * as React from 'react'
-import { useState } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { TaskDialog } from './TaskDialog'
 import { TaskColumn } from './TaskColumn'
-import { useTasks } from '../lib/TaskContext'
 import { Task, TaskStatus } from '../lib/types'
+import { TaskDialog } from './TaskDialog'
 
-export function TaskBoard() {
-  const { tasks, loading } = useTasks()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<Task | undefined>()
+const statusLabels: Record<TaskStatus, string> = {
+  [TaskStatus.IDEATION]: 'Ideation',
+  [TaskStatus.TODO]: 'To Do',
+  [TaskStatus.IN_PROGRESS]: 'In Progress',
+  [TaskStatus.COMPLETED]: 'Completed',
+}
+
+interface TaskBoardProps {
+  tasks: Task[]
+}
+
+export function TaskBoard({ tasks }: TaskBoardProps) {
+  const [selectedTask, setSelectedTask] = React.useState<Task | undefined>()
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
 
   const handleEditTask = (task: Task) => {
     setSelectedTask(task)
@@ -24,63 +32,53 @@ export function TaskBoard() {
     setIsDialogOpen(true)
   }
 
-  const tasksByStatus = {
-    [TaskStatus.IDEATION]: tasks.filter((task) => task.status === TaskStatus.IDEATION),
-    [TaskStatus.TODO]: tasks.filter((task) => task.status === TaskStatus.TODO),
-    [TaskStatus.IN_PROGRESS]: tasks.filter((task) => task.status === TaskStatus.IN_PROGRESS),
-    [TaskStatus.COMPLETED]: tasks.filter((task) => task.status === TaskStatus.COMPLETED),
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false)
+    setSelectedTask(undefined)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-      </div>
-    )
-  }
+  const tasksByStatus = React.useMemo(() => {
+    const grouped = Object.values(TaskStatus).reduce<Record<TaskStatus, Task[]>>((acc, status) => {
+      acc[status] = []
+      return acc
+    }, {} as Record<TaskStatus, Task[]>)
+
+    tasks.forEach((task) => {
+      grouped[task.status].push(task)
+    })
+
+    return grouped
+  }, [tasks])
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Tasks</h2>
+          <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
           <button
             onClick={handleCreateTask}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             Create Task
           </button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <TaskColumn
-            status={TaskStatus.IDEATION}
-            tasks={tasksByStatus[TaskStatus.IDEATION]}
-            onEditTask={handleEditTask}
-          />
-          <TaskColumn
-            status={TaskStatus.TODO}
-            tasks={tasksByStatus[TaskStatus.TODO]}
-            onEditTask={handleEditTask}
-          />
-          <TaskColumn
-            status={TaskStatus.IN_PROGRESS}
-            tasks={tasksByStatus[TaskStatus.IN_PROGRESS]}
-            onEditTask={handleEditTask}
-          />
-          <TaskColumn
-            status={TaskStatus.COMPLETED}
-            tasks={tasksByStatus[TaskStatus.COMPLETED]}
-            onEditTask={handleEditTask}
-          />
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+          {Object.values(TaskStatus).map((status) => (
+            <TaskColumn
+              key={status}
+              title={statusLabels[status]}
+              status={status}
+              tasks={tasksByStatus[status]}
+              onEditTask={handleEditTask}
+            />
+          ))}
         </div>
-
-        <TaskDialog
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          task={selectedTask}
-        />
       </div>
+      <TaskDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        task={selectedTask}
+      />
     </DndProvider>
   )
 } 
