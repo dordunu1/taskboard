@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useDrag } from 'react-dnd'
 import type { Identifier } from 'dnd-core'
 import { Task, TaskCategory, TaskPriority, TaskStatus } from '../lib/types'
-import { Boxes, FolderIcon, Link2, Pencil, Trash2 } from 'lucide-react'
+import { Boxes, FolderIcon, Link2, Pencil, Trash2, User2 } from 'lucide-react'
 import { deleteTask } from '../lib/tasks'
 import { Timestamp } from 'firebase/firestore'
 import {
@@ -120,7 +120,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
       </p>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
+          <div className="space-y-2">
             {task.dueDate && (
               <div className="text-sm text-muted-foreground flex items-center gap-1">
                 <span className="font-medium text-foreground">Due:</span>
@@ -128,10 +128,19 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
               </div>
             )}
             {task.assignee && (
-              <div className="text-sm text-muted-foreground flex items-center gap-1">
-                <span className="font-medium text-foreground">Assigned to:</span>
-                {task.assignee}
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1">
+                      <User2 className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">{task.assignee}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Assigned to: {task.assignee}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
           <div className="flex flex-col items-end gap-2">
