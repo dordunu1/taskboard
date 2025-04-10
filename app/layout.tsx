@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: 'A simple, efficient way to organize and track your tasks',
     images: [
       {
-        url: '/done.jpg',
+        url: '/done.png',
         width: 1200,
         height: 630,
         alt: 'Get Your Stuff Done! - Task Management Made Simple'
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Get Your Stuff Done!',
     description: 'A simple, efficient way to organize and track your tasks',
-    images: ['/done.jpg'],
+    images: ['/done.png'],
     creator: '@realchriswilder'
   }
 }
