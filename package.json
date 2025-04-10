@@ -1,5 +1,5 @@
 {
-  "name": "web3-taskboard",
+  "name": "get-your-stuff-done",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -41,7 +41,7 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.7.2"
   },
-  "description": "A React Native task board application designed to streamline Web3 development workflow management with Firebase integration, following Notion-like minimalist aesthetics.",
+  "description": "A modern task board application designed to help you organize and track your tasks efficiently, with a clean and minimalist interface.",
   "main": "postcss.config.js",
   "directories": {
     "lib": "lib"

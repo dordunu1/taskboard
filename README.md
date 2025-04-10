@@ -1,6 +1,6 @@
-# Web3 Development Task Board
+# Get Your Stuff Done!
 
-A React Native task board application designed to streamline Web3 development workflow management with Firebase integration, following Notion-like minimalist aesthetics.
+A modern task board application designed to help you organize and track your tasks efficiently, with a clean and minimalist interface.
 
 ## Features
 
@@ -24,7 +24,7 @@ A React Native task board application designed to streamline Web3 development wo
 1. Clone the repository:
 ```bash
 git clone [repository-url]
-cd web3-taskboard
+cd taskboard
 ```
 
 2. Install dependencies:

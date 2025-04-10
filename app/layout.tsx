@@ -7,8 +7,28 @@ import { ClientLayout } from './client-layout'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Web3 Task Board',
-  description: 'A task management system for Web3 development teams',
+  title: 'Get Your Stuff Done!',
+  description: 'A simple, efficient way to organize and track your tasks',
+  openGraph: {
+    title: 'Get Your Stuff Done!',
+    description: 'A simple, efficient way to organize and track your tasks',
+    images: [
+      {
+        url: '/done.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Get Your Stuff Done! - Task Management Made Simple'
+      }
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Get Your Stuff Done!',
+    description: 'A simple, efficient way to organize and track your tasks',
+    images: ['/done.jpg'],
+    creator: '@realchriswilder'
+  }
 }
 
 export default function RootLayout({

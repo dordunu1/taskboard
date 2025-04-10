@@ -39,10 +39,10 @@ export default function AuthPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-foreground">
-            Web3 Task Board
+            Get Your Stuff Done!
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Manage your Web3 development tasks efficiently
+            A simple, efficient way to organize and track your tasks
           </p>
         </div>
 
