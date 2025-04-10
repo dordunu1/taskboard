@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { useAuth } from '../../lib/AuthContext'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
 
 export function SignUpForm() {
   const [email, setEmail] = useState('')
@@ -33,59 +35,57 @@ export function SignUpForm() {
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="text-sm text-red-600">
+          <div className="text-sm text-destructive">
             {error}
           </div>
         )}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground">
             Email
           </label>
-          <input
+          <Input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="mt-1"
             required
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground">
             Password
           </label>
-          <input
+          <Input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="mt-1"
             required
           />
         </div>
-        <button
-          type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
+        <Button type="submit" className="w-full">
           Sign Up
-        </button>
+        </Button>
       </form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+          <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
         </div>
       </div>
 
-      <button
+      <Button
         type="button"
         onClick={handleGoogleSignIn}
-        className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        variant="outline"
+        className="w-full flex items-center justify-center gap-3"
       >
-        <svg className="w-5 h-5" viewBox="0 0 24 24">
+        <svg className="h-5 w-5" viewBox="0 0 24 24">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             fill="#4285F4"
@@ -104,7 +104,7 @@ export function SignUpForm() {
           />
         </svg>
         Sign in with Google
-      </button>
+      </Button>
     </div>
   )
 } 

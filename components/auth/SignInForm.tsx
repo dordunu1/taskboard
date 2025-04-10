@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { useAuth } from '../../lib/AuthContext'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
 
 interface SignInFormProps {
   onResetPassword?: () => void
@@ -35,60 +37,58 @@ export function SignInForm({ onResetPassword }: SignInFormProps) {
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-foreground">
             Email address
           </label>
-          <input
+          <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-foreground">
             Password
           </label>
-          <input
+          <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1"
             required
           />
           <button
             type="button"
             onClick={onResetPassword}
-            className="mt-1 text-sm text-blue-600 hover:text-blue-500"
+            className="mt-1 text-sm text-primary hover:text-primary/90"
           >
             Forgot your password?
           </button>
         </div>
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-destructive">{error}</p>
         )}
-        <button
-          type="submit"
-          className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
+        <Button type="submit" className="w-full">
           Sign In
-        </button>
+        </Button>
       </form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-2 text-gray-500">Or continue with</span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
       </div>
 
-      <button
+      <Button
         type="button"
         onClick={handleGoogleSignIn}
-        className="w-full flex items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        variant="outline"
+        className="w-full flex items-center justify-center gap-3"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
           <path
@@ -109,7 +109,7 @@ export function SignInForm({ onResetPassword }: SignInFormProps) {
           />
         </svg>
         Sign in with Google
-      </button>
+      </Button>
     </div>
   )
 } 

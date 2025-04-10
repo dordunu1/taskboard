@@ -14,8 +14,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="light"
+      enableSystem={false}
       disableTransitionOnChange
     >
       <AuthProvider>
